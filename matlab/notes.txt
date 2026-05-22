@@ -1,0 +1,2 @@
+This folder contains MATLAB scripts for the EL3015 final project on an inverted pendulum.
+Run main.m to generate plots and metrics in the figures/ folder.
