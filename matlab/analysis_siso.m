@@ -24,7 +24,9 @@ title([label ' - Root Locus']);
 saveas(fig, fullfile(output_dir, [tag '_root_locus.png']));
 
 fig = figure('Name', [label ' - Bode']);
+warn_state = warning('off', 'all');
 margin(L);
+warning(warn_state);
 grid on;
 title([label ' - Bode Plot']);
 saveas(fig, fullfile(output_dir, [tag '_bode.png']));
@@ -36,9 +38,11 @@ title([label ' - Nyquist Plot']);
 saveas(fig, fullfile(output_dir, [tag '_nyquist.png']));
 
 T = feedback(L, 1);
+T_plot = minreal(T, 1e-6);
+is_stable = isstable(T_plot);
 
 fig = figure('Name', [label ' - Step']);
-step(T);
+step(T_plot);
 grid on;
 title([label ' - Closed-loop Step Response']);
 xlabel('Time (s)');
@@ -47,7 +51,7 @@ legend(y_label, 'Location', 'best');
 saveas(fig, fullfile(output_dir, [tag '_step.png']));
 
 fig = figure('Name', [label ' - Impulse']);
-impulse(T);
+impulse(T_plot);
 grid on;
 title([label ' - Closed-loop Impulse Response']);
 xlabel('Time (s)');
@@ -55,14 +59,23 @@ ylabel(y_label);
 legend(y_label, 'Location', 'best');
 saveas(fig, fullfile(output_dir, [tag '_impulse.png']));
 
-info = stepinfo(T);
-ess = abs(1 - dcgain(T));
+if is_stable
+    info = stepinfo(T_plot);
+    ess = abs(1 - dcgain(T_plot));
+else
+    info = struct('RiseTime', NaN, 'SettlingTime', NaN, 'Overshoot', NaN, ...
+        'Peak', NaN, 'PeakTime', NaN);
+    ess = NaN;
+end
+warn_state = warning('off', 'all');
 [Gm, Pm, Wcg, Wcp] = margin(L);
+warning(warn_state);
 
 metrics = struct( ...
     'label', label, ...
     'step_info', info, ...
     'steady_state_error', ess, ...
+    'closed_loop_stable', is_stable, ...
     'gain_margin', Gm, ...
     'phase_margin', Pm, ...
     'gain_cross_freq', Wcg, ...

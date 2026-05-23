@@ -49,10 +49,23 @@ info_c
 metrics_comp = analysis_siso(Gtheta, C, 'CT compensated', 'theta (rad)', output_dir);
 print_metrics('CT compensated', metrics_comp);
 
+% Cart position response with theta-based controller (disturbance at cart input)
+Tx_ct = minreal(Gx / (1 + C * Gtheta));
+tag = make_tag('CT cart position');
+fig = figure('Name', 'CT Cart Position - Impulse');
+impulse(Tx_ct);
+grid on;
+title('CT Cart Position - Impulse Response (disturbance)');
+xlabel('Time (s)');
+ylabel('x (m)');
+legend('x (m)', 'Location', 'best');
+saveas(fig, fullfile(output_dir, [tag '_impulse.png']));
+
 % Discretization
 Ts = 0.02;
 sysd = c2d(sys, Ts, 'zoh');
 Gd = c2d(Gtheta, Ts, 'zoh');
+Gxd = minreal(tf(sysd(1)));
 
 disp('Discrete-time state-space (ZOH):');
 sysd
@@ -76,7 +89,25 @@ print_metrics('DT uncompensated', metrics_uncomp_d);
 metrics_comp_d = analysis_siso(Gd, Cd, 'DT compensated', 'theta (rad)', output_dir);
 print_metrics('DT compensated', metrics_comp_d);
 
+% Cart position response with theta-based controller (disturbance at cart input)
+Tx_dt = minreal(Gxd / (1 + Cd * Gd));
+tag = make_tag('DT cart position');
+fig = figure('Name', 'DT Cart Position - Impulse');
+impulse(Tx_dt);
+grid on;
+title(sprintf('DT Cart Position - Impulse Response (Ts = %.3f s)', Ts));
+xlabel('Time (s)');
+ylabel('x (m)');
+legend('x (m)', 'Location', 'best');
+saveas(fig, fullfile(output_dir, [tag '_impulse.png']));
+
 % Comparison between continuous and discrete
 Tc = feedback(C * Gtheta, 1);
 Td = feedback(Cd * Gd, 1);
 compare_continuous_discrete(Tc, Td, output_dir, Ts);
+
+
+T = feedback(C * Gtheta, 1);
+T = minreal(T, 1e-6);
+isstable(T)
+pole(T)
