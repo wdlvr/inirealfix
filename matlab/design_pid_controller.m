@@ -13,18 +13,24 @@ catch
     end
 end
 
+max_bw = 10; % robustness-focused cap
+
 if nargin < 2 || isempty(target_bw)
-    candidates = logspace(-2, 2, 12); % 0.01 to 100 rad/s
+    base_bw = max_bw;
+    candidates = logspace(-3, log10(base_bw), 12); % 0.001 to max_bw rad/s
 else
-    candidates = unique(target_bw * [1 1/2 1/4 1/8 2 4 8 16]);
-    candidates = unique([candidates logspace(-2, 2, 8)]); % add a broad fallback band
+    base_bw = min(target_bw, max_bw);
+    candidates = unique(base_bw * [1 1/2 1/4 1/8 2 4]);
+    candidates = unique([candidates logspace(-3, log10(base_bw), 8)]); % add a low-band fallback
 end
-candidates = candidates(candidates > 0 & isfinite(candidates));
+candidates = candidates(candidates > 0 & isfinite(candidates) & candidates <= max_bw);
 
 signs = [1 -1];
+scale_candidates = logspace(-3, 0, 7); % 0.001 to 1
 
 best = struct('found', false, 'has_gm', false, 'gm', -Inf, 'has_pm', false, ...
-    'pm', -Inf, 'settle', Inf, 'C', [], 'info', struct(), 'bw', NaN, 'sign', 1);
+    'pm', -Inf, 'settle', Inf, 'C', [], 'info', struct(), 'bw', NaN, ...
+    'sign', 1, 'scale', NaN);
 
 for s = signs
     G_use = s * G;
@@ -35,45 +41,47 @@ for s = signs
             continue;
         end
 
-        L = C_try * G_use;
-        T = feedback(L, 1);
-        Tm = minreal(T, 1e-6);
-        if ~isstable(Tm)
-            continue;
-        end
+        for scale = scale_candidates
+            L = (scale * C_try) * G_use;
+            T = feedback(L, 1);
+            Tm = minreal(T, 1e-6);
+            if ~isstable(Tm)
+                continue;
+            end
 
-        warn_state = warning('off', 'all');
-        [Gm, Pm] = margin(L);
-        warning(warn_state);
-        has_gm = isinf(Gm) || (isfinite(Gm) && (Gm > 1));
-        has_pm = isfinite(Pm) && (Pm > 0);
+            warn_state = warning('off', 'all');
+            [Gm, Pm] = margin(L);
+            warning(warn_state);
+            has_gm = isinf(Gm) || (isfinite(Gm) && (Gm > 1));
+            has_pm = isfinite(Pm) && (Pm > 0);
 
-        s_info = stepinfo(Tm);
-        settle = s_info.SettlingTime;
-        if ~isfinite(settle)
-            settle = Inf;
-        end
+            if ~(has_gm && has_pm)
+                continue;
+            end
 
-        C_out = C_try;
-        if s < 0
-            C_out = -C_try;
-        end
+            s_info = stepinfo(Tm);
+            settle = s_info.SettlingTime;
+            if ~isfinite(settle)
+                settle = Inf;
+            end
 
-        if ~best.found
-            best = pack_best(C_out, info_try, w, s, has_gm, Gm, has_pm, Pm, settle);
-            continue;
-        end
+            C_out = scale * C_try;
+            if s < 0
+                C_out = -C_out;
+            end
 
-        if has_gm && ~best.has_gm
-            best = pack_best(C_out, info_try, w, s, has_gm, Gm, has_pm, Pm, settle);
-        elseif (has_gm == best.has_gm)
-            if has_pm && ~best.has_pm
-                best = pack_best(C_out, info_try, w, s, has_gm, Gm, has_pm, Pm, settle);
-            elseif (has_pm == best.has_pm)
+            if ~best.found
+                best = pack_best(C_out, info_try, w, s, scale, has_gm, Gm, has_pm, Pm, settle);
+                continue;
+            end
+
+            if Gm > best.gm + 1e-3
+                best = pack_best(C_out, info_try, w, s, scale, has_gm, Gm, has_pm, Pm, settle);
+            elseif abs(Gm - best.gm) <= 1e-3
                 if Pm > best.pm + 1e-3
-                    best = pack_best(C_out, info_try, w, s, has_gm, Gm, has_pm, Pm, settle);
+                    best = pack_best(C_out, info_try, w, s, scale, has_gm, Gm, has_pm, Pm, settle);
                 elseif abs(Pm - best.pm) <= 1e-3 && settle < best.settle
-                    best = pack_best(C_out, info_try, w, s, has_gm, Gm, has_pm, Pm, settle);
+                    best = pack_best(C_out, info_try, w, s, scale, has_gm, Gm, has_pm, Pm, settle);
                 end
             end
         end
@@ -87,6 +95,7 @@ if best.found
     info.SelectedGainMargin = best.gm;
     info.SelectedPhaseMargin = best.pm;
     info.SelectedSign = best.sign;
+    info.SelectedScale = best.scale;
     info.ClosedLoopStable = true;
     return;
 end
@@ -127,7 +136,8 @@ end
 warning(warn_state);
 end
 
-function best = pack_best(C, info, bw, sign, has_gm, gm, has_pm, pm, settle)
+function best = pack_best(C, info, bw, sign, scale, has_gm, gm, has_pm, pm, settle)
 best = struct('found', true, 'has_gm', has_gm, 'gm', gm, 'has_pm', has_pm, ...
-    'pm', pm, 'settle', settle, 'C', C, 'info', info, 'bw', bw, 'sign', sign);
+    'pm', pm, 'settle', settle, 'C', C, 'info', info, 'bw', bw, 'sign', sign, ...
+    'scale', scale);
 end
