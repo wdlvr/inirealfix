@@ -65,8 +65,8 @@ fprintf('Phase margin (DT): %.4g deg\n', Pm);
 fprintf('Gain crossover (DT): %.4g rad/s\n', Wcg);
 fprintf('Phase crossover (DT): %.4g rad/s\n', Wcp);
 
-t = 0:Ts:1;
-phi_stable = deg2rad(180);
+t = 0:Ts:0.5;
+phi_stable = deg2rad(20);
 
 [y_step, t_step] = step(Td, t);
 [y_imp, t_imp] = impulse(Td, t);
