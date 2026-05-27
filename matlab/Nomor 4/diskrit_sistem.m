@@ -65,6 +65,78 @@ fprintf('Phase margin (DT): %.4g deg\n', Pm);
 fprintf('Gain crossover (DT): %.4g rad/s\n', Wcg);
 fprintf('Phase crossover (DT): %.4g rad/s\n', Wcp);
 
+t = 0:Ts:1;
+phi_stable = deg2rad(180);
+
+[y_step, t_step] = step(Td, t);
+[y_imp, t_imp] = impulse(Td, t);
+
+phi_step = y_step;
+phi_imp = y_imp;
+
+phi_step_wrap = mod(phi_step + pi, 2*pi) - pi;
+phi_imp_wrap = mod(phi_imp + pi, 2*pi) - pi;
+
+fall_step_idx = find(abs(phi_step) >= phi_stable, 1, 'first');
+if ~isempty(fall_step_idx)
+    a_step = phi_step(fall_step_idx);
+    t_fall_step = t_step(fall_step_idx);
+    a_step_wrap = mod(a_step + pi, 2*pi) - pi;
+    fprintf('Unstable at t = %.4g s (DT step)\n', t_fall_step);
+else
+    a_step_wrap = [];
+    t_fall_step = [];
+    fprintf('Unstable not reached (DT step)\n');
+end
+
+fall_imp_idx = find(abs(phi_imp) >= phi_stable, 1, 'first');
+if ~isempty(fall_imp_idx)
+    a_imp = phi_imp(fall_imp_idx);
+    t_fall_imp = t_imp(fall_imp_idx);
+    a_imp_wrap = mod(a_imp + pi, 2*pi) - pi;
+    fprintf('Unstable at t = %.4g s (DT impulse)\n', t_fall_imp);
+else
+    a_imp_wrap = [];
+    t_fall_imp = [];
+    fprintf('Unstable not reached (DT impulse)\n');
+end
+
+fig = figure('Name', 'Step - DT Uncompensated (rad)');
+plot(t_step, phi_step_wrap); grid on; hold on;
+plot([t_step(1) t_step(end)], [0 0], 'k--');
+plot([t_step(1) t_step(end)], [pi pi], 'b--');
+plot([t_step(1) t_step(end)], [-pi -pi], 'b--');
+plot([t_step(1) t_step(end)], [phi_stable phi_stable], 'm--');
+plot([t_step(1) t_step(end)], [-phi_stable -phi_stable], 'm--');
+if ~isempty(t_fall_step)
+    plot(t_fall_step, a_step_wrap, 'ro');
+end
+hold off;
+ylim([-pi pi]);
+xlabel('Time (s)');
+ylabel('phi (rad)');
+saveas(fig, fullfile(out_dir, 'step_dt_uncomp.png'));
+
+fig = figure('Name', 'Impulse - DT Uncompensated (rad)');
+plot(t_imp, phi_imp_wrap); grid on; hold on;
+plot([t_imp(1) t_imp(end)], [0 0], 'k--');
+plot([t_imp(1) t_imp(end)], [pi pi], 'b--');
+plot([t_imp(1) t_imp(end)], [-pi -pi], 'b--');
+plot([t_imp(1) t_imp(end)], [phi_stable phi_stable], 'm--');
+plot([t_imp(1) t_imp(end)], [-phi_stable -phi_stable], 'm--');
+if ~isempty(t_fall_imp)
+    plot(t_fall_imp, a_imp_wrap, 'ro');
+end
+hold off;
+ylim([-pi pi]);
+xlabel('Time (s)');
+ylabel('phi (rad)');
+saveas(fig, fullfile(out_dir, 'impulse_dt_uncomp.png'));
+
+if ~stable_d
+    disp('Closed-loop unstable, responses may diverge.');
+end
+
 Tc = feedback(G, 1);
 if isstable(Tc) && stable_d
     fig = figure('Name', 'Step CT vs DT');

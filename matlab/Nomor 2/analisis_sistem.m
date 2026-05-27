@@ -74,33 +74,72 @@ fprintf('Phase margin: %.4g deg\n', Pm);
 fprintf('Gain crossover: %.4g rad/s\n', Wcg);
 fprintf('Phase crossover: %.4g rad/s\n', Wcp);
 
-t = 0:0.01:2;
+t = 0:0.01:1;
+phi_limit = deg2rad(180);
 
 [y_step, t_step] = step(T, t);
 [y_imp, t_imp] = impulse(T, t);
 
-phi_step = rad2deg(y_step);
-phi_imp = rad2deg(y_imp);
+phi_step = y_step;
+phi_imp = y_imp;
 
-phi_step = mod(phi_step + 180, 360) - 180;
-phi_imp = mod(phi_imp + 180, 360) - 180;
+phi_step_wrap = mod(phi_step + pi, 2*pi) - pi;
+phi_imp_wrap = mod(phi_imp + pi, 2*pi) - pi;
 
-fig = figure('Name', 'Step - Uncompensated (deg)');
-plot(t_step, phi_step); grid on; hold on;
+fall_step_idx = find(abs(phi_step) >= phi_limit, 1, 'first');
+if ~isempty(fall_step_idx)
+    a_step = phi_step(fall_step_idx);
+    t_fall_step = t_step(fall_step_idx);
+    a_step_wrap = mod(a_step + pi, 2*pi) - pi;
+    fprintf('Unstable at t = %.4g s (step)\n', t_fall_step);
+else
+    a_step_wrap = [];
+    t_fall_step = [];
+    fprintf('Unstable not reached (step)\n');
+end
+
+fall_imp_idx = find(abs(phi_imp) >= phi_limit, 1, 'first');
+if ~isempty(fall_imp_idx)
+    a_imp = phi_imp(fall_imp_idx);
+    t_fall_imp = t_imp(fall_imp_idx);
+    a_imp_wrap = mod(a_imp + pi, 2*pi) - pi;
+    fprintf('Unstable at t = %.4g s (impulse)\n', t_fall_imp);
+else
+    a_imp_wrap = [];
+    t_fall_imp = [];
+    fprintf('Unstable not reached (impulse)\n');
+end
+
+fig = figure('Name', 'Step - Uncompensated (rad)');
+plot(t_step, phi_step_wrap); grid on; hold on;
 plot([t_step(1) t_step(end)], [0 0], 'k--');
+plot([t_step(1) t_step(end)], [pi pi], 'b--');
+plot([t_step(1) t_step(end)], [-pi -pi], 'b--');
+plot([t_step(1) t_step(end)], [phi_limit phi_limit], 'm--');
+plot([t_step(1) t_step(end)], [-phi_limit -phi_limit], 'm--');
+if ~isempty(t_fall_step)
+    plot(t_fall_step, a_step_wrap, 'ro');
+end
 hold off;
-ylim([-180 180]);
+ylim([-pi pi]);
 xlabel('Time (s)');
-ylabel('phi (deg)');
+ylabel('phi (rad)');
 saveas(fig, fullfile(out_dir, 'step_uncomp.png'));
 
-fig = figure('Name', 'Impulse - Uncompensated (deg)');
-plot(t_imp, phi_imp); grid on; hold on;
+fig = figure('Name', 'Impulse - Uncompensated (rad)');
+plot(t_imp, phi_imp_wrap); grid on; hold on;
 plot([t_imp(1) t_imp(end)], [0 0], 'k--');
+plot([t_imp(1) t_imp(end)], [pi pi], 'b--');
+plot([t_imp(1) t_imp(end)], [-pi -pi], 'b--');
+plot([t_imp(1) t_imp(end)], [phi_limit phi_limit], 'm--');
+plot([t_imp(1) t_imp(end)], [-phi_limit -phi_limit], 'm--');
+if ~isempty(t_fall_imp)
+    plot(t_fall_imp, a_imp_wrap, 'ro');
+end
 hold off;
-ylim([-180 180]);
+ylim([-pi pi]);
 xlabel('Time (s)');
-ylabel('phi (deg)');
+ylabel('phi (rad)');
 saveas(fig, fullfile(out_dir, 'impulse_uncomp.png'));
 
 if ~stable_cl
