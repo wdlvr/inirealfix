@@ -1,0 +1,167 @@
+clear; clc; close all;
+
+%% Load model suspensi mobil
+here = fileparts(mfilename('fullpath'));
+model_dir = fullfile(here, '..', 'Nomor 1');
+mat_path = fullfile(model_dir, 'quarter_car_suspension_tf.mat');
+
+if exist(mat_path, 'file')
+    load(mat_path, 'G1', 'G2');
+else
+    load('quarter_car_suspension_tf.mat', 'G1', 'G2');
+end
+
+% G1 = (X1 - X2) / U
+% G2 = (X1 - X2) / W
+
+out_dir = fullfile(here, 'figures');
+if ~exist(out_dir, 'dir')
+    mkdir(out_dir);
+end
+
+%% =========================
+%  Analisis G1
+%  =========================
+
+G = G1;
+
+disp('====================================');
+disp('G1 = (X1 - X2) / U');
+disp('====================================');
+
+disp('Open-loop poles G1:');
+pole(G)
+
+disp('Open-loop stable G1:');
+isstable(G)
+
+fig = figure('Name', 'Root Locus - G1');
+rlocus(G); grid on;
+title('Root Locus G1 = (X1 - X2) / U');
+saveas(fig, fullfile(out_dir, 'root_locus_G1.png'));
+
+fig = figure('Name', 'Bode - G1');
+margin(G); grid on;
+title('Bode Plot G1 = (X1 - X2) / U');
+saveas(fig, fullfile(out_dir, 'bode_G1.png'));
+
+fig = figure('Name', 'Nyquist - G1');
+nyquist(G); grid on;
+title('Nyquist Plot G1 = (X1 - X2) / U');
+saveas(fig, fullfile(out_dir, 'nyquist_G1.png'));
+
+T1 = feedback(G, 1);
+
+disp('Closed-loop stable G1:');
+isstable(T1)
+
+[Gm, Pm, Wcg, Wcp] = margin(G);
+
+if isfinite(Gm)
+    Gm_db = 20*log10(Gm);
+else
+    Gm_db = Inf;
+end
+
+info = stepinfo(T1);
+ess = abs(1 - dcgain(T1));
+
+fprintf('\nPerformance G1 closed-loop:\n');
+fprintf('Steady-state error: %.4g\n', ess);
+fprintf('Rise time: %.4g s\n', info.RiseTime);
+fprintf('Settling time: %.4g s\n', info.SettlingTime);
+fprintf('Overshoot: %.4g %%\n', info.Overshoot);
+fprintf('Peak: %.4g at %.4g s\n', info.Peak, info.PeakTime);
+fprintf('Gain margin: %.4g (%.4g dB)\n', Gm, Gm_db);
+fprintf('Phase margin: %.4g deg\n', Pm);
+fprintf('Gain crossover: %.4g rad/s\n', Wcg);
+fprintf('Phase crossover: %.4g rad/s\n', Wcp);
+
+t = 0:0.001:5;
+
+fig = figure('Name', 'Step Response - G1');
+step(T1, t); grid on;
+title('Closed-loop Step Response G1');
+xlabel('Time (s)');
+ylabel('X1 - X2 (m)');
+saveas(fig, fullfile(out_dir, 'step_G1.png'));
+
+fig = figure('Name', 'Impulse Response - G1');
+impulse(T1, t); grid on;
+title('Closed-loop Impulse Response G1');
+xlabel('Time (s)');
+ylabel('X1 - X2 (m)');
+saveas(fig, fullfile(out_dir, 'impulse_G1.png'));
+
+
+%% =========================
+%  Analisis G2
+%  =========================
+
+G = G2;
+
+disp('====================================');
+disp('G2 = (X1 - X2) / W');
+disp('====================================');
+
+disp('Open-loop poles G2:');
+pole(G)
+
+disp('Open-loop stable G2:');
+isstable(G)
+
+fig = figure('Name', 'Root Locus - G2');
+rlocus(G); grid on;
+title('Root Locus G2 = (X1 - X2) / W');
+saveas(fig, fullfile(out_dir, 'root_locus_G2.png'));
+
+fig = figure('Name', 'Bode - G2');
+margin(G); grid on;
+title('Bode Plot G2 = (X1 - X2) / W');
+saveas(fig, fullfile(out_dir, 'bode_G2.png'));
+
+fig = figure('Name', 'Nyquist - G2');
+nyquist(G); grid on;
+title('Nyquist Plot G2 = (X1 - X2) / W');
+saveas(fig, fullfile(out_dir, 'nyquist_G2.png'));
+
+T2 = feedback(G, 1);
+
+disp('Closed-loop stable G2:');
+isstable(T2)
+
+[Gm, Pm, Wcg, Wcp] = margin(G);
+
+if isfinite(Gm)
+    Gm_db = 20*log10(Gm);
+else
+    Gm_db = Inf;
+end
+
+info = stepinfo(T2);
+ess = abs(1 - dcgain(T2));
+
+fprintf('\nPerformance G2 closed-loop:\n');
+fprintf('Steady-state error: %.4g\n', ess);
+fprintf('Rise time: %.4g s\n', info.RiseTime);
+fprintf('Settling time: %.4g s\n', info.SettlingTime);
+fprintf('Overshoot: %.4g %%\n', info.Overshoot);
+fprintf('Peak: %.4g at %.4g s\n', info.Peak, info.PeakTime);
+fprintf('Gain margin: %.4g (%.4g dB)\n', Gm, Gm_db);
+fprintf('Phase margin: %.4g deg\n', Pm);
+fprintf('Gain crossover: %.4g rad/s\n', Wcg);
+fprintf('Phase crossover: %.4g rad/s\n', Wcp);
+
+fig = figure('Name', 'Step Response - G2');
+step(T2, t); grid on;
+title('Closed-loop Step Response G2');
+xlabel('Time (s)');
+ylabel('X1 - X2 (m)');
+saveas(fig, fullfile(out_dir, 'step_G2.png'));
+
+fig = figure('Name', 'Impulse Response - G2');
+impulse(T2, t); grid on;
+title('Closed-loop Impulse Response G2');
+xlabel('Time (s)');
+ylabel('X1 - X2 (m)');
+saveas(fig, fullfile(out_dir, 'impulse_G2.png'));
