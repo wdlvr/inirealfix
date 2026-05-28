@@ -1,8 +1,8 @@
 clear; clc; close all;
 
 %% Aircraft Pitch Control Transfer Function
-num = [11.7304 22.578];
-den = [1 4.9676 12.941 0];
+num = [1.151 0.1774];
+den = [1 0.739 0.921 0];
 
 G1 = tf(num, den);
 

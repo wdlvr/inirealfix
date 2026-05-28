@@ -65,21 +65,17 @@ end
 
 %% Display angle results
 fprintf('\nAngle Calculation:\n');
-fprintf('Nilai fungsi transfer pada pole dominan = %.6f %+.6fj\n', real(G_pole_dominan), imag(G_pole_dominan));
-fprintf('Sudut kompensasi dibutuhkan  = %.6f deg\n', sudut_kompensasi);
+fprintf('Fungsi  = %.6f %+.6fj\n', real(G_pole_dominan), imag(G_pole_dominan));
+fprintf('Angle of G1 at dominant pole  = %.6f deg\n', sudut_kompensasi);
 
 Zc = wd/tan(deg2rad(sudut_kompensasi)) + sigma_d;
 
+fprintf('\nPD Zero Calculation:\n');
+fprintf('Zero kompensasi pada s = %.6f\n', -Zc);
 
 G_comp = G1*(s+Zc);
 G_comp_pole_dominan = evalfr(G_comp, pole_dominan);
 K_comp = -1/G_comp_pole_dominan;
 
-fprintf('\nNilai kompensasi PD:\n');
-fprintf('Zero kompensasi pada s = %.6f\n', -Zc);
+fprintf('\nK kompensasi:\n');
 fprintf('K_comp = %.6f\n', K_comp);
-fprintf('Fungsi transfer PD: %.6f(s + %.6f)\n', K_comp, Zc);
-fprintf('Fungsi transfer setelah kompensasi: \n');
-G_comp
-
-save('aircraft_pitch_tf_PD_comp.mat', 'G_comp');
