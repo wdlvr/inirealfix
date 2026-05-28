@@ -117,15 +117,6 @@ xlabel('Time (s)');
 ylabel('Pitch Angle \\\theta (rad)');
 saveas(fig, fullfile(out_dir, 'step_uncomp.png'));
 
-% Impulse response
-[y_imp, t_imp] = impulse(T, t);
-fig = figure('Name', 'Impulse Response - Uncompensated');
-plot(t_imp, y_imp); grid on;
-title('Closed-loop Impulse Response of Uncompensated Aircraft Pitch System');
-xlabel('Time (s)');
-ylabel('Pitch Angle \\\theta (rad)');
-saveas(fig, fullfile(out_dir, 'impulse_uncomp.png'));
-
 if stable_cl
     info = stepinfo(T);
     ess = abs(1 - dcgain(T));
