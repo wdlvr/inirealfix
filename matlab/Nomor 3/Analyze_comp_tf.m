@@ -18,17 +18,15 @@ isstable(L)
 fig = figure('Name', 'Root Locus - compensated');
 rlocus(L); grid on;
 title('Root Locus of compensated Aircraft Pitch System');
-saveas(fig, fullfile(out_dir, 'root_locus_uncomp.png'));
 
 fig = figure('Name', 'Bode Plot - compensated');
 margin(L); grid on;
 title('Bode Plot of compensated Aircraft Pitch System');
-saveas(fig, fullfile(out_dir, 'bode_uncomp.png'));
 
 [Gm, Pm, Wcg, Wcp] = margin(L);
 
 if isfinite(Gm)
-    Gm_db = 20*loG_comp0(Gm);
+    Gm_db = 20*log(Gm);
 else
     Gm_db = Inf;
 end
@@ -42,7 +40,6 @@ fig = figure('Name', 'Nyquist Plot - compensated');
 nyquist(L);
 grid on;
 title('Nyquist Plot of compensated Aircraft Pitch System');
-saveas(fig, fullfile(out_dir, 'nyquist_uncomp.png'));
 
 T = feedback(L, 1);
 T = minreal(T);
@@ -66,7 +63,6 @@ step(T, t); grid on;
 title('Closed-loop Step Response of compensated Aircraft Pitch System');
 xlabel('Time (s)');
 ylabel('Pitch Angle \\\theta (rad)');
-saveas(fig, fullfile(out_dir, 'step_uncomp.png'));
 
 if stable_cl
     info = stepinfo(T);
@@ -85,13 +81,3 @@ else
         'Peak', NaN, 'PeakTime', NaN);
     ess = NaN;
 end
-
-save(fullfile(here, 'aircraft_pitch_compensated_tf.mat'), ...
-     'G_comp', 'C', 'L', 'T');
-
-save(fullfile(out_dir, 'analysis_metrics.mat'), ...
-    'Gm', 'Pm', 'Wcg', 'Wcp', 'Gm_db', 'info', 'ess', 'stable_cl');
-
-fprintf('Saved model to %s and metrics to %s\n', ...
-    fullfile(here, 'aircraft_pitch_compensated_tf.mat'), ...
-    fullfile(out_dir, 'analysis_metrics.mat'));
