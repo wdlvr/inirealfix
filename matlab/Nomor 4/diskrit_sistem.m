@@ -1,16 +1,33 @@
 clear; clc; close all;
 
 here = fileparts(mfilename('fullpath'));
+if isempty(here)
+    p = which('diskrit_sistem.m');
+    if ~isempty(p)
+        here = fileparts(p);
+    else
+        here = pwd;
+    end
+end
 model_dir = fullfile(here, '..', 'Nomor 1');
-mat_path = fullfile(model_dir, 'inverted_pendulum_tf.mat');
+mat_path = fullfile(model_dir, 'aircraft_pitch_tf.mat');
 if exist(mat_path, 'file')
-    load(mat_path, 'P_pend');
+    loaded = load(mat_path);
 else
-    load('inverted_pendulum_tf.mat');
+    loaded = load('aircraft_pitch_tf.mat');
+end
+
+if isfield(loaded, 'G1')
+    G = loaded.G1;
+elseif isfield(loaded, 'sys_tf')
+    G = loaded.sys_tf;
+elseif isfield(loaded, 'num') && isfield(loaded, 'den')
+    G = tf(loaded.num, loaded.den);
+else
+    error('aircraft_pitch_tf.mat missing expected variables (G1/sys_tf/num+den)');
 end
 
 Ts = 0.02;
-G = P_pend;
 Gd = c2d(G, Ts, 'zoh');
 
 out_dir = fullfile(here, 'figures');

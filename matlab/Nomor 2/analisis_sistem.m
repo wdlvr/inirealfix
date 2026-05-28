@@ -1,35 +1,58 @@
 clear; clc; close all;
 
-%% Aircraft Pitch Control System
-% Input  : delta_e = elevator deflection angle
-% Output : theta   = pitch angle
+here = fileparts(mfilename('fullpath'));
+if isempty(here)
+    p = which('analisis_sistem.m');
+    if ~isempty(p)
+        here = fileparts(p);
+    else
+        here = pwd;
+    end
+end
 
-s = tf('s');
+model_dir = fullfile(here, '..', 'Nomor 1');
+mat_path = fullfile(model_dir, 'aircraft_pitch_tf.mat');
+if exist(mat_path, 'file')
+    loaded = load(mat_path);
+else
+    loaded = load('aircraft_pitch_tf.mat');
+end
 
-G1 = (1.151*s + 0.1774) / (s^3 + 0.739*s^2 + 0.921*s);
+if isfield(loaded, 'G1')
+    G1 = loaded.G1;
+elseif isfield(loaded, 'sys_tf')
+    G1 = loaded.sys_tf;
+elseif isfield(loaded, 'num') && isfield(loaded, 'den')
+    G1 = tf(loaded.num, loaded.den);
+else
+    error('aircraft_pitch_tf.mat does not contain expected variables');
+end
 
 G1.InputName = 'delta_e';
 G1.OutputName = 'theta';
 
-%% Output folder
-here = fileparts(mfilename('fullpath'));
 out_dir = fullfile(here, 'figures');
-
 if ~exist(out_dir, 'dir')
     mkdir(out_dir);
 end
 
-%% Uncompensated system
-% Sebelum kompensasi berarti C(s) = 1
-C = 1;
+% Remove old image files with longer/incorrect names to keep directory clean
+oldPatterns = {'*uncompensated*.png', '*uncompenstaged*.png'};
+for k = 1:numel(oldPatterns)
+    fp = dir(fullfile(out_dir, oldPatterns{k}));
+    for i = 1:numel(fp)
+        try
+            delete(fullfile(out_dir, fp(i).name));
+        catch
+        end
+    end
+end
 
-%% Open-loop transfer function
+C = 1;
 L = C*G1;
 
-disp('====================================');
 disp('Open-loop transfer function L(s) = C(s)G1(s)');
 disp('Uncompensated system: C(s) = 1');
-disp('====================================');
 L
 
 disp('Open-loop poles:');
@@ -41,19 +64,15 @@ zero(L)
 disp('Open-loop stable:');
 isstable(L)
 
-%% Root Locus
 fig = figure('Name', 'Root Locus - Uncompensated');
-rlocus(L);
-grid on;
+rlocus(L); grid on;
 title('Root Locus of Uncompensated Aircraft Pitch System');
-saveas(fig, fullfile(out_dir, 'root_locus_uncompensated.png'));
+saveas(fig, fullfile(out_dir, 'root_locus_uncomp.png'));
 
-%% Bode Plot and Stability Margins
 fig = figure('Name', 'Bode Plot - Uncompensated');
-margin(L);
-grid on;
+margin(L); grid on;
 title('Bode Plot of Uncompensated Aircraft Pitch System');
-saveas(fig, fullfile(out_dir, 'bode_uncompensated.png'));
+saveas(fig, fullfile(out_dir, 'bode_uncomp.png'));
 
 [Gm, Pm, Wcg, Wcp] = margin(L);
 
@@ -68,23 +87,17 @@ fprintf('Gain margin     : %.4g atau %.4g dB\n', Gm, Gm_db);
 fprintf('Phase margin    : %.4g deg\n', Pm);
 fprintf('Gain crossover  : %.4g rad/s\n', Wcg);
 fprintf('Phase crossover : %.4g rad/s\n', Wcp);
-
-%% Nyquist Plot
 fig = figure('Name', 'Nyquist Plot - Uncompensated');
 nyquist(L);
 grid on;
 title('Nyquist Plot of Uncompensated Aircraft Pitch System');
-saveas(fig, fullfile(out_dir, 'nyquist_uncompensated.png'));
+saveas(fig, fullfile(out_dir, 'nyquist_uncomp.png'));
 
-%% Closed-loop uncompensated system
-% Unity feedback tanpa controller tambahan
 T = feedback(L, 1);
 T = minreal(T);
 
-disp('====================================');
 disp('Closed-loop uncompensated transfer function');
 disp('T(s) = G1(s) / (1 + G1(s))');
-disp('====================================');
 T
 
 disp('Closed-loop poles:');
@@ -93,21 +106,26 @@ pole(T)
 disp('Closed-loop zeros:');
 zero(T)
 
-disp('Closed-loop stable:');
-stable_cl = isstable(T)
+stable_cl = isstable(T);
 
-%% Step Response
 t = 0:0.001:50;
 
 fig = figure('Name', 'Step Response - Uncompensated');
-step(T, t);
-grid on;
+step(T, t); grid on;
 title('Closed-loop Step Response of Uncompensated Aircraft Pitch System');
 xlabel('Time (s)');
-ylabel('Pitch Angle \theta (rad)');
-saveas(fig, fullfile(out_dir, 'step_uncompensated.png'));
+ylabel('Pitch Angle \\\theta (rad)');
+saveas(fig, fullfile(out_dir, 'step_uncomp.png'));
 
-%% Performance Evaluation
+% Impulse response
+[y_imp, t_imp] = impulse(T, t);
+fig = figure('Name', 'Impulse Response - Uncompensated');
+plot(t_imp, y_imp); grid on;
+title('Closed-loop Impulse Response of Uncompensated Aircraft Pitch System');
+xlabel('Time (s)');
+ylabel('Pitch Angle \\\theta (rad)');
+saveas(fig, fullfile(out_dir, 'impulse_uncomp.png'));
+
 if stable_cl
     info = stepinfo(T);
     ess = abs(1 - dcgain(T));
@@ -121,8 +139,17 @@ if stable_cl
     fprintf('Peak time          : %.4g s\n', info.PeakTime);
 else
     fprintf('\nClosed-loop uncompensated system is unstable. Step response metrics are not valid.\n');
+    info = struct('RiseTime', NaN, 'SettlingTime', NaN, 'Overshoot', NaN, ...
+        'Peak', NaN, 'PeakTime', NaN);
+    ess = NaN;
 end
 
-%% Save model
-save('aircraft_pitch_uncompensated_tf.mat', ...
+save(fullfile(here, 'aircraft_pitch_uncompensated_tf.mat'), ...
      'G1', 'C', 'L', 'T');
+
+save(fullfile(out_dir, 'analysis_metrics.mat'), ...
+    'Gm', 'Pm', 'Wcg', 'Wcp', 'Gm_db', 'info', 'ess', 'stable_cl');
+
+fprintf('Saved model to %s and metrics to %s\n', ...
+    fullfile(here, 'aircraft_pitch_uncompensated_tf.mat'), ...
+    fullfile(out_dir, 'analysis_metrics.mat'));
