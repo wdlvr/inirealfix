@@ -19,7 +19,8 @@ s = tf('s');
 %% Design Parameters
 percent_overshoot = 10;     % percent overshoot dalam persen
 settling_time = 2;          % settling time dalam detik
-zero_Ki = 0.1;                % Nilai z pada (s+z)/s untuk pengendali I
+zero_lead     = 3;          % nilai a pada (s+a)/(s+b) lead comp, pilih dikiri pole dominan
+pole_lag      = 0.1;        % nilai d pada (s+c)/(s+d) lag comp, pilih dekat nol
 
 %% Calculate damping ratio zeta
 OS = percent_overshoot / 100;
@@ -51,7 +52,7 @@ fprintf('dominant pole     = %.6f %+.6fj\n', real(pole_dominan), imag(pole_domin
 %% Calculate angle deficiency / compensation angle
 
 % Substitusi pole dominan ke open-loop plant G1(s)
-G_pole_dominan = evalfr(G1, pole_dominan);
+G_pole_dominan = evalfr(G1*(s+zero_lead), pole_dominan);
 
 % Sudut G1(s) pada pole dominan
 sudut_G_rad = angle(G_pole_dominan);
@@ -67,28 +68,28 @@ end
 %% Display angle results
 fprintf('\nAngle Calculation:\n');
 fprintf('Nilai fungsi transfer pada pole dominan = %.6f %+.6fj\n', real(G_pole_dominan), imag(G_pole_dominan));
-fprintf('Sudut kompensasi dibutuhkan  = %.6f deg\n', sudut_kompensasi);
+fprintf('Sudut kompensasi dibutuhkan dari Pc= %.6f deg\n', -sudut_kompensasi);
 
-Zc = wd/tan(deg2rad(sudut_kompensasi)) + sigma_d;
+Pc = wd/tan(deg2rad(sudut_kompensasi)) + sigma_d;
 
-%% PD
-G_comp = G1*(s+Zc);
+%% Lead
+G_comp = G1*(s+zero_lead)/(s+Pc);
 G_comp_pole_dominan = evalfr(G_comp, pole_dominan);
-K_comp_PD = -1/G_comp_pole_dominan;
+K_comp_Lead = -1/G_comp_pole_dominan;
 
-%% PID
-G_comp = G_comp * (s+zero_Ki)/s;
+%% Lag
+zero_lag = 1;   % cari dari ess yang diinginkan
+G_comp = G_comp * (s+zero_lag)/(s+pole_lag);
 G_comp_pole_dominan = evalfr(G_comp, pole_dominan);
-K_comp_PID = -1/G_comp_pole_dominan;
-G_comp = G_comp * real(K_comp_PID);
+K_comp_LeadLag = -1/G_comp_pole_dominan;
+G_comp = G_comp * real(K_comp_LeadLag);
 
-
-fprintf('\nNilai kompensasi PD dan PID:\n');
-fprintf('Zero kompensasi pada s = %.6f\n', -Zc);
-fprintf('K_comp_PD = %.6f\n', K_comp_PD);
-fprintf('Fungsi transfer PD: %.6f(s + %.6f)\n', K_comp_PD, Zc);
-fprintf('K_comp_PID = %.6f\n', K_comp_PID);
-fprintf('Fungsi transfer PID: %.6f(s + %.6f)(s + %.6f)/s\n', K_comp_PID, Zc, zero_Ki);
+fprintf('\nNilai kompensasi Lead dan Lead-Lag:\n');
+fprintf('Zero dan Pole kompensasi pada s = %.6f dan s = %.6f\n', -zero_lead, -Pc);
+fprintf('K_comp_Lead = %.6f\n', K_comp_Lead);
+fprintf('Fungsi transfer Lead: %.6f(s + %.6f)/(s + %.6f)\n', K_comp_Lead, zero_lead, Pc);
+fprintf('K_comp_LeadLag = %.6f\n', K_comp_LeadLag);
+fprintf('Fungsi transfer PID: %.6f(s + %.6f)/(s + %.6f) . (s + %.6f)/(s + %.6f)\n', K_comp_LeadLag, zero_lead, Pc, zero_lag, pole_lag);
 G_comp
 
-save('aircraft_pitch_tf_PID_comp.mat', 'G_comp');
+save('aircraft_pitch_tf_LeadLag_comp.mat', 'G_comp');

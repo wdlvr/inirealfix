@@ -1,6 +1,6 @@
 clear; clc; close all;
 
-load('aircraft_pitch_tf_PD_comp.mat', 'G_comp');
+load('aircraft_pitch_tf_LeadLag_comp.mat', 'G_comp');
 L = G_comp;
 
 disp('Open-loop transfer function L(s) = G_comp(s)');
