@@ -54,12 +54,12 @@ isstable(L)
 
 fig = figure('Name', 'Root Locus - Uncompensated');
 rlocus(L); grid on;
-title('Root Locus Sistem Uncompensated');
+title('Root Locus SUncompensated Aircraft Pitch System');
 saveas(fig, fullfile(out_dir, 'root_locus_uncomp.png'));
 
 fig = figure('Name', 'Bode Plot - Uncompensated');
 margin(L); grid on;
-title('Bode Plot Sistem Uncompensated');
+title('Bode Plot of Uncompensated Aircraft Pitch System');
 saveas(fig, fullfile(out_dir, 'bode_uncomp.png'));
 
 [Gm, Pm, Wcg, Wcp] = margin(L);
@@ -78,7 +78,7 @@ fprintf('Phase crossover : %.4g rad/s\n', Wcp);
 fig = figure('Name', 'Nyquist Plot - Uncompensated');
 nyquist(L);
 grid on;
-title('Nyquist Plot Sistem Uncompensated');
+title('Nyquist Plot of Uncompensated Aircraft Pitch System');
 saveas(fig, fullfile(out_dir, 'nyquist_uncomp.png'));
 
 T = feedback(L, 1);
@@ -88,10 +88,10 @@ disp('Closed-loop uncompensated transfer function');
 disp('T(s) = G1(s) / (1 + G1(s))');
 T
 
-disp('Poles Sistem Closed-loop:');
+disp('Closed-loop poles:');
 pole(T)
 
-disp('Zeros Sistem Closed-loop:');
+disp('Closed-loop zeros:');
 zero(T)
 
 stable_cl = isstable(T);
@@ -100,25 +100,25 @@ t = 0:0.001:50;
 
 fig = figure('Name', 'Step Response - Uncompensated');
 step(T, t); grid on;
-title('Closed-loop Respons Step Uncompensated');
+title('Closed-loop Step Response of Uncompensated Aircraft Pitch System');
 xlabel('Time (s)');
 ylabel('Pitch Angle \\\theta (rad)');
 saveas(fig, fullfile(out_dir, 'step_uncomp.png'));
 
 % Impulse response
-%[y_imp, t_imp] = impulse(T, t);
-%fig = figure('Name', 'Impulse Response - Uncompensated');
-%plot(t_imp, y_imp); grid on;
-%title('Closed-loop Respons Impuls Sistem');
-%xlabel('Time (s)');
-%ylabel('Pitch Angle \\\theta (rad)');
-%saveas(fig, fullfile(out_dir, 'impulse_uncomp.png'));
+[y_imp, t_imp] = impulse(T, t);
+fig = figure('Name', 'Impulse Response - Uncompensated');
+plot(t_imp, y_imp); grid on;
+title('Closed-loop Impulse Response of Uncompensated Aircraft Pitch System');
+xlabel('Time (s)');
+ylabel('Pitch Angle \\\theta (rad)');
+saveas(fig, fullfile(out_dir, 'impulse_uncomp.png'));
 
 if stable_cl
     info = stepinfo(T);
     ess = abs(1 - dcgain(T));
 
-    fprintf('\nHasil Closed-loop Uncompensated:\n');
+    fprintf('\nClosed-loop Uncompensated Performance:\n');
     fprintf('Steady-state error : %.4g\n', ess);
     fprintf('Rise time          : %.4g s\n', info.RiseTime);
     fprintf('Settling time      : %.4g s\n', info.SettlingTime);
@@ -126,7 +126,7 @@ if stable_cl
     fprintf('Peak               : %.4g\n', info.Peak);
     fprintf('Peak time          : %.4g s\n', info.PeakTime);
 else
-    fprintf('\nClosed-loop uncompensated system unstable. Step response metrics are not valid.\n');
+    fprintf('\nClosed-loop uncompensated system is unstable. Step response metrics are not valid.\n');
     info = struct('RiseTime', NaN, 'SettlingTime', NaN, 'Overshoot', NaN, ...
         'Peak', NaN, 'PeakTime', NaN);
     ess = NaN;
