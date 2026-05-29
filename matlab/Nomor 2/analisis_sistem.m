@@ -36,18 +36,6 @@ if ~exist(out_dir, 'dir')
     mkdir(out_dir);
 end
 
-% Remove old image files with longer/incorrect names to keep directory clean
-oldPatterns = {'*uncompensated*.png', '*uncompenstaged*.png'};
-for k = 1:numel(oldPatterns)
-    fp = dir(fullfile(out_dir, oldPatterns{k}));
-    for i = 1:numel(fp)
-        try
-            delete(fullfile(out_dir, fp(i).name));
-        catch
-        end
-    end
-end
-
 C = 1;
 L = C*G1;
 
