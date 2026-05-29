@@ -38,6 +38,8 @@ else
     else
         error('No usable variables found inside the MAT-file.');
     end
+end
+
 % Determine a recommended sampling period Ts automatically.
 % Rule of thumb: sample at ~10x the system bandwidth (crossover freq).
 oversampling = 10; % adjust to 10-20 for better fidelity
@@ -83,6 +85,49 @@ if isfinite(fc) && fc > 0
     fprintf('Recommended Ts = %.6g s (oversampling = %d). Range: [%.6g, %.6g] s\n', Ts, oversampling, Ts_range_fast, Ts_range_slow);
 else
     fprintf('Using default Ts = %.6g s\n', Ts);
+end
+
+% Automated sweep: try different oversampling ratios to find a stable DT closed-loop (if possible)
+if isfinite(fc) && fc > 0
+    oversamp_list = [5, 10, 20, 50, 100];
+    Ts_candidates = 1./(oversamp_list * fc);
+    sweep = struct('Ts', cell(1,numel(Ts_candidates)), 'stable', cell(1,numel(Ts_candidates)), 'Gm', cell(1,numel(Ts_candidates)), 'Pm', cell(1,numel(Ts_candidates)), 'Wcg', cell(1,numel(Ts_candidates)), 'Wcp', cell(1,numel(Ts_candidates)));
+    found = false;
+    for k = 1:numel(Ts_candidates)
+        Ts_k = Ts_candidates(k);
+        try
+            Gd_k = c2d(Gc, Ts_k, 'zoh');
+            Td_k = feedback(Gd_k, 1);
+            stable_k = isstable(Td_k);
+            [Gm_k, Pm_k, Wcg_k, Wcp_k] = margin(Gd_k);
+        catch
+            stable_k = false;
+            Gm_k = NaN; Pm_k = NaN; Wcg_k = NaN; Wcp_k = NaN;
+        end
+        sweep(k).Ts = Ts_k;
+        sweep(k).stable = logical(stable_k);
+        sweep(k).Gm = Gm_k;
+        sweep(k).Pm = Pm_k;
+        sweep(k).Wcg = Wcg_k;
+        sweep(k).Wcp = Wcp_k;
+        if isfinite(Gm_k)
+            Gm_db_k = 20*log10(Gm_k);
+        else
+            Gm_db_k = Inf;
+        end
+        fprintf('Sweep %d: Ts=%.6g s stable=%d Gm=%.4g (%.4g dB) Pm=%.4g Wcg=%.4g\n', k, Ts_k, stable_k, Gm_k, Gm_db_k, Pm_k, Wcg_k);
+        if stable_k && ~found
+            Ts = Ts_k;
+            found = true;
+            fprintf('Selected Ts = %.6g s (first stable candidate)\n', Ts);
+        end
+    end
+    if ~found
+        Ts = min(Ts_candidates);
+        fprintf('No stable discretization found in sweep; selecting fastest Ts = %.6g s as fallback\n', Ts);
+    end
+else
+    % fc not usable: keep Ts as previously determined/default
 end
 
 Gd = c2d(Gc, Ts, 'zoh');
@@ -171,3 +216,4 @@ end
 save(fullfile(out_dir, 'dt_comp_analysis.mat'), 'Gc', 'Gd', 'Tc', 'Td', 'Gm', 'Pm', 'Wcg', 'Wcp');
 
 disp('Diskritisasi dan analisis selesai.');
+% end of script
