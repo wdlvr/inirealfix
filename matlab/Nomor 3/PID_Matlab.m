@@ -21,10 +21,12 @@ Kd = 9.5767;
 %% PID Controller
 C_PID = Kp + Ki/s + Kd*s;
 
-disp('PID Controller hasil GA:');
+disp('PID Controller hasil PID Tuner:');
 C_PID
 
-
+fprintf('Kp = %.6f\n', Kp);
+fprintf('Ki = %.6f\n', Ki);
+fprintf('Kd = %.6f\n', Kd);
 G_comp = G * C_PID;
 G_comp
 

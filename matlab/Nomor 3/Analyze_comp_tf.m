@@ -1,6 +1,6 @@
 clear; clc; close all;
 
-load('aircraft_pitch_tf_Lead_comp.mat', 'G_comp');
+load('aircraft_pitch_tf_PID_comp_Matlab.mat', 'G_comp');
 L = G_comp;
 
 disp('Fungsi Transfer Openloop L(s) = G_comp(s)');
@@ -55,6 +55,7 @@ zero(T)
 
 t = 0:0.001:50;
 
+fig = figure('Name', 'Respons Step dari Sistem Terkompensasi Closed-Loop');
 step(T, t); grid on;
 title('Respons Step dari Sistem Terkompensasi Closed-Loop');
 xlabel('Time (s)');
