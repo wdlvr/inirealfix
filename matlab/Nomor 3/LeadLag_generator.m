@@ -17,10 +17,10 @@ end
 s = tf('s');
 
 %% Design Parameters
-percent_overshoot = 10;     % percent overshoot dalam persen
-settling_time = 2;          % settling time dalam detik
-zero_lead     = 3;          % nilai a pada (s+a)/(s+b) lead comp, pilih dikiri pole dominan
-pole_lag      = 0.1;        % nilai d pada (s+c)/(s+d) lag comp, pilih dekat nol
+percent_overshoot = 0.04;     % percent overshoot
+settling_time = 0.8;          % settling time dalam detik
+zero_lead     = 3;            % nilai a pada (s+a)/(s+b) lead comp, pilih dikiri pole dominan
+pole_lag      = 0.01;         % nilai d pada (s+c)/(s+d) lag comp, pilih dekat nol
 
 %% Calculate damping ratio zeta
 OS = percent_overshoot / 100;
@@ -78,7 +78,7 @@ G_comp_pole_dominan = evalfr(G_comp, pole_dominan);
 K_comp_Lead = -1/G_comp_pole_dominan;
 
 %% Lag
-zero_lag = 1;   % cari dari ess yang diinginkan
+zero_lag = 0.1;   % cari dari ess yang diinginkan
 G_comp = G_comp * (s+zero_lag)/(s+pole_lag);
 G_comp_pole_dominan = evalfr(G_comp, pole_dominan);
 K_comp_LeadLag = -1/G_comp_pole_dominan;

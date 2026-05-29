@@ -17,8 +17,8 @@ end
 s = tf('s');
 
 %% Design Parameters
-percent_overshoot = 10;     % percent overshoot dalam persen
-settling_time = 2;          % settling time dalam detik
+percent_overshoot = 0.01;     % percent overshoot dalam persen
+settling_time = 0.85;          % settling time dalam detik
 
 %% Calculate damping ratio zeta
 OS = percent_overshoot / 100;
@@ -80,6 +80,8 @@ G_comp = K_comp_real*G_comp;
 fprintf('\nNilai kompensasi PD:\n');
 fprintf('Zero kompensasi pada s = %.6f\n', -Zc);
 fprintf('K_comp = %.6f\n', K_comp);
+fprintf('Kp = %.6f\n', K_comp);
+fprintf('Kd = %.6f\n', K_comp*Zc);
 fprintf('Fungsi transfer PD: %.6f(s + %.6f)\n', K_comp, Zc);
 fprintf('Fungsi transfer setelah kompensasi: \n');
 G_comp

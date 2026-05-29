@@ -17,9 +17,9 @@ end
 s = tf('s');
 
 %% Design Parameters
-percent_overshoot = 10;     % percent overshoot dalam persen
-settling_time = 2;          % settling time dalam detik
-zero_Ki = 0.1;                % Nilai z pada (s+z)/s untuk pengendali I
+percent_overshoot = 0.1;     % percent overshoot
+settling_time = 1;           % settling time dalam detik
+zero_Ki = 0.1;               % Nilai z pada (s+z)/s untuk pengendali I, dipilih dekat nol
 
 %% Calculate damping ratio zeta
 OS = percent_overshoot / 100;
@@ -88,6 +88,9 @@ fprintf('Zero kompensasi pada s = %.6f\n', -Zc);
 fprintf('K_comp_PD = %.6f\n', K_comp_PD);
 fprintf('Fungsi transfer PD: %.6f(s + %.6f)\n', K_comp_PD, Zc);
 fprintf('K_comp_PID = %.6f\n', K_comp_PID);
+fprintf('Kp = %.6f\n', K_comp_PID*(Zc + zero_Ki));
+fprintf('Ki = %.6f\n', K_comp_PID*Zc*zero_Ki);
+fprintf('Kd = %.6f\n', K_comp_PID);
 fprintf('Fungsi transfer PID: %.6f(s + %.6f)(s + %.6f)/s\n', K_comp_PID, Zc, zero_Ki);
 G_comp
 

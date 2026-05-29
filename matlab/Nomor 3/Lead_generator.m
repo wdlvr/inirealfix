@@ -17,9 +17,9 @@ end
 s = tf('s');
 
 %% Design Parameters
-percent_overshoot = 10;     % percent overshoot dalam persen
-settling_time = 2;          % settling time dalam detik
-zero_lead     = 3;          % nilai a pada (s+a)/(s+b), pilih dikiri pole dominan
+percent_overshoot = 0.04;     % percent overshoot
+settling_time = 0.8;          % settling time dalam detik
+zero_lead     = 3;            % nilai a pada (s+a)/(s+b), pilih dikiri pole dominan
 
 %% Calculate damping ratio zeta
 OS = percent_overshoot / 100;
