@@ -17,8 +17,9 @@ end
 s = tf('s');
 
 %% Design Parameters
-percent_overshoot = 0.01;     % percent overshoot dalam persen
-settling_time = 0.85;          % settling time dalam detik
+percent_overshoot = 0.1;     % percent overshoot
+settling_time = 1;           % settling time dalam detik
+zero_Ki = 0.1;               % Nilai z pada (s+z)/s untuk pengendali I, dipilih dekat nol
 
 %% Calculate damping ratio zeta
 OS = percent_overshoot / 100;
@@ -70,20 +71,27 @@ fprintf('Sudut kompensasi dibutuhkan  = %.6f deg\n', sudut_kompensasi);
 
 Zc = wd/tan(deg2rad(sudut_kompensasi)) + sigma_d;
 
-
+%% PD
 G_comp = G1*(s+Zc);
 G_comp_pole_dominan = evalfr(G_comp, pole_dominan);
-K_comp = -1/G_comp_pole_dominan;
-K_comp_real = real(K_comp);
-G_comp = K_comp_real*G_comp;
+K_comp_PD = -1/G_comp_pole_dominan;
 
-fprintf('\nNilai kompensasi PD:\n');
+%% PID
+G_comp = G_comp * (s+zero_Ki)/s;
+G_comp_pole_dominan = evalfr(G_comp, pole_dominan);
+K_comp_PID = -1/G_comp_pole_dominan;
+G_comp = G_comp * real(K_comp_PID);
+
+
+fprintf('\nNilai kompensasi PD dan PID:\n');
 fprintf('Zero kompensasi pada s = %.6f\n', -Zc);
-fprintf('K_comp = %.6f\n', K_comp);
-fprintf('Kp = %.6f\n', K_comp);
-fprintf('Kd = %.6f\n', K_comp*Zc);
-fprintf('Fungsi transfer PD: %.6f(s + %.6f)\n', K_comp, Zc);
-fprintf('Fungsi transfer setelah kompensasi: \n');
+fprintf('K_comp_PD = %.6f\n', K_comp_PD);
+fprintf('Fungsi transfer PD: %.6f(s + %.6f)\n', K_comp_PD, Zc);
+fprintf('K_comp_PID = %.6f\n', K_comp_PID);
+fprintf('Kp = %.6f\n', K_comp_PID*(Zc + zero_Ki));
+fprintf('Ki = %.6f\n', K_comp_PID*Zc*zero_Ki);
+fprintf('Kd = %.6f\n', K_comp_PID);
+fprintf('Fungsi transfer PID: %.6f(s + %.6f)(s + %.6f)/s\n', K_comp_PID, Zc, zero_Ki);
 G_comp
 
-save('aircraft_pitch_tf_PD_comp.mat', 'G_comp');
+save('aircraft_pitch_tf_PID_comp.mat', 'G_comp');
