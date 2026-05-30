@@ -1,6 +1,6 @@
 clear; clc; close all;
 
-load('aircraft_pitch_tf_PID_comp_Matlab.mat', 'G_comp');
+load('aircraft_pitch_tf_PID_comp.mat', 'G_comp');
 L = G_comp;
 
 disp('Fungsi Transfer Openloop L(s) = G_comp(s)');
@@ -71,3 +71,38 @@ fprintf('Settling time      : %.4g s\n', info.SettlingTime);
 fprintf('Overshoot          : %.4g %%\n', info.Overshoot);
 fprintf('Peak               : %.4g\n', info.Peak);
 fprintf('Peak time          : %.4g s\n', info.PeakTime);
+
+%% Respons unit impulse
+figure;
+impulse(T, t);
+grid on;
+title('Respons Impuls dari Sistem Terkompensasi Closed-Loop');
+xlabel('Time (s)');
+ylabel('Pitch Angle \theta (rad)');
+
+%% Respons unit ramp
+r_ramp = t;
+[y_ramp, t_ramp] = lsim(T, r_ramp, t);
+
+figure;
+plot(t_ramp, r_ramp, '--'); hold on;
+plot(t_ramp, y_ramp);
+grid on;
+title('Respons Ramp dari Sistem Terkompensasi Closed-Loop');
+xlabel('Time (s)');
+ylabel('Pitch Angle \theta (rad)');
+legend('Input Ramp', 'Output');
+
+t = 0:0.001:50;
+%% Respons unit parabolik
+r_parabolic = 0.5*t.^2;
+[y_para, t_para] = lsim(T, r_parabolic, t);
+
+figure;
+plot(t_para, r_parabolic, '--'); hold on;
+plot(t_para, y_para);
+grid on;
+title('Respons Parabolik dari Sistem Terkompensasi Closed-Loop');
+xlabel('Time (s)');
+ylabel('Pitch Angle \theta (rad)');
+legend('Input Parabolic', 'Output');

@@ -1,6 +1,6 @@
 clear; clc; close all;
 
-load('aircraft_pitch_tf_LeadLag_comp.mat', 'G_comp');
+load('aircraft_pitch_tf_PID_comp.mat', 'G_comp');
 L = G_comp;
 
 disp('Fungsi Transfer Openloop L(s) = G_comp(s)');
@@ -13,11 +13,12 @@ disp('Open-loop zeros:');
 zero(L)
 
 disp('Open-loop stable:');
-isstable(L)
 
+fig = figure('Name', 'Root Locus dari Sistem Terkompensasi');
 rlocus(L); grid on;
 title('Root Locus dari Sistem Terkompensasi');
 
+fig = figure('Name', 'Bode Plot dari Sistem Terkompensasi');
 margin(L); grid on;
 title('Bode Plot dari Sistem Terkompensasi');
 
@@ -34,6 +35,7 @@ fprintf('Gain margin     : %.4g atau %.4g dB\n', Gm, Gm_db);
 fprintf('Phase margin    : %.4g deg\n', Pm);
 fprintf('Gain crossover  : %.4g rad/s\n', Wcg);
 fprintf('Phase crossover : %.4g rad/s\n', Wcp);
+fig = figure('Name', 'Plot Nyquist dari Sistem Terkompensasi');
 nyquist(L);
 grid on;
 title('Plot Nyquist dari Sistem Terkompensasi');
@@ -51,23 +53,49 @@ pole(T)
 disp('Closed-loop zeros:');
 zero(T)
 
-stable_cl = isstable(T);
-
 t = 0:0.001:50;
 
+fig = figure('Name', 'Respons Step dari Sistem Terkompensasi Closed-Loop');
 step(T, t); grid on;
 title('Respons Step dari Sistem Terkompensasi Closed-Loop');
 xlabel('Time (s)');
 ylabel('Pitch Angle \\\theta (rad)');
 
-if stable_cl
-    info = stepinfo(T);
-    ess = abs(1 - dcgain(T));
+info = stepinfo(T);
+ess = abs(1 - dcgain(T));
 
-    fprintf('\nPerforma Respons Step Sistem Terkompensasi Closed-Loop:\n');
-    fprintf('Steady-state error : %.4g\n', ess);
-    fprintf('Rise time          : %.4g s\n', info.RiseTime);
-    fprintf('Settling time      : %.4g s\n', info.SettlingTime);
-    fprintf('Overshoot          : %.4g %%\n', info.Overshoot);
-    fprintf('Peak               : %.4g\n', info.Peak);
-    fprintf('Peak time          : %.4g s\n', info.PeakTime);
+fprintf('\nPerforma Respons Step Sistem Terkompensasi Closed-Loop:\n');
+fprintf('Steady-state error : %.4g\n', ess);
+fprintf('Rise time          : %.4g s\n', info.RiseTime);
+fprintf('Settling time      : %.4g s\n', info.SettlingTime);
+fprintf('Overshoot          : %.4g %%\n', info.Overshoot);
+fprintf('Peak               : %.4g\n', info.Peak);
+fprintf('Peak time          : %.4g s\n', info.PeakTime);
+
+%% Respons unit 
+
+%% Respons unit ramp
+r_ramp = t;
+[y_ramp, t_ramp] = lsim(T, r_ramp, t);
+
+figure;
+plot(t_ramp, r_ramp, '--'); hold on;
+plot(t_ramp, y_ramp);
+grid on;
+title('Respons Ramp Sistem Terkompensasi Closed-Loop');
+xlabel('Time (s)');
+ylabel('Pitch Angle \theta (rad)');
+legend('Input Ramp', 'Output');
+
+%% Respons unit parabolik
+r_parabolic = 0.5*t.^2;
+[y_para, t_para] = lsim(T, r_parabolic, t);
+
+figure;
+plot(t_para, r_parabolic, '--'); hold on;
+plot(t_para, y_para);
+grid on;
+title('Respons Parabolic Sistem Terkompensasi Closed-Loop');
+xlabel('Time (s)');
+ylabel('Pitch Angle \theta (rad)');
+legend('Input Parabolic', 'Output');

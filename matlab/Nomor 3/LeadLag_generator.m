@@ -6,21 +6,13 @@ model_dir = fullfile(here, '..', 'Nomor 1');
 mat_path = fullfile(model_dir, 'aircraft_pitch_tf.mat');
 load(mat_path, 'G1');
 
-%% Output folder
-here = fileparts(mfilename('fullpath'));
-out_dir = fullfile(here, 'figures');
-
-if ~exist(out_dir, 'dir')
-    mkdir(out_dir);
-end
-
 s = tf('s');
 
 %% Design Parameters
 percent_overshoot = 0.04;     % percent overshoot
-settling_time = 0.8;          % settling time dalam detik
-zero_lead     = 3;            % nilai a pada (s+a)/(s+b) lead comp, pilih dikiri pole dominan
-pole_lag      = 0.01;         % nilai d pada (s+c)/(s+d) lag comp, pilih dekat nol
+settling_time     = 0.8;      % settling time dalam detik
+zero_lead         = 3;        % nilai a pada (s+a)/(s+b) lead comp, pilih dikiri pole dominan
+pole_lag          = 0.01;     % nilai d pada (s+c)/(s+d) lag comp, pilih dekat nol
 
 %% Calculate damping ratio zeta
 OS = percent_overshoot / 100;

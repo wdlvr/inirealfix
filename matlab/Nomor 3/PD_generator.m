@@ -6,14 +6,6 @@ model_dir = fullfile(here, '..', 'Nomor 1');
 mat_path = fullfile(model_dir, 'aircraft_pitch_tf.mat');
 load(mat_path, 'G1');
 
-%% Output folder
-here = fileparts(mfilename('fullpath'));
-out_dir = fullfile(here, 'figures');
-
-if ~exist(out_dir, 'dir')
-    mkdir(out_dir);
-end
-
 s = tf('s');
 
 %% Design Parameters
@@ -80,8 +72,8 @@ G_comp = K_comp_real*G_comp;
 fprintf('\nNilai kompensasi PD:\n');
 fprintf('Zero kompensasi pada s = %.6f\n', -Zc);
 fprintf('K_comp = %.6f\n', K_comp);
-fprintf('Kp = %.6f\n', K_comp);
-fprintf('Kd = %.6f\n', K_comp*Zc);
+fprintf('Kp = %.6f\n', K_comp*Zc);
+fprintf('Kd = %.6f\n', K_comp);
 fprintf('Fungsi transfer PD: %.6f(s + %.6f)\n', K_comp, Zc);
 fprintf('Fungsi transfer setelah kompensasi: \n');
 G_comp

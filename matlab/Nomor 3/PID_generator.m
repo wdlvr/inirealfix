@@ -6,14 +6,6 @@ model_dir = fullfile(here, '..', 'Nomor 1');
 mat_path = fullfile(model_dir, 'aircraft_pitch_tf.mat');
 load(mat_path, 'G1');
 
-%% Output folder
-here = fileparts(mfilename('fullpath'));
-out_dir = fullfile(here, 'figures');
-
-if ~exist(out_dir, 'dir')
-    mkdir(out_dir);
-end
-
 s = tf('s');
 
 %% Design Parameters
