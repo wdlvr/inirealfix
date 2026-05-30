@@ -1,5 +1,7 @@
-% analisis_sistem.m
-% Analisis open-loop dan closed-loop untuk Nomor 2 (kendali pitch pesawat).
+% Nama / NIM : 
+% Rafi Ihsan Alfathin     / 13223018
+% Maghryza Milchan Fayumi / 13223036
+% William Anthony         / 13223048
 % Deskripsi: Melakukan analisi root locus,
 % Bode Plot, Nyquist, serta respons closed-loop (step, impulse, ramp, parabolik).
 clear; clc; close all;
