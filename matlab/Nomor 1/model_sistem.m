@@ -1,3 +1,4 @@
+% model_sistem.m
 clear; clc; close all;
 
 %% Aircraft Pitch Control Transfer Function

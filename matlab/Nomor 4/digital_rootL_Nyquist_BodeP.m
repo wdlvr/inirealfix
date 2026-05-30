@@ -1,11 +1,10 @@
-% ==========================================
-% KODE PERBAIKAN PLOT SISTEM DIGITAL
-% ==========================================
+% digital_rootL_Nyquist_BodeP.m
+% Penggunaan: Memplot Bode dan Nyquist dari sistem digital yang didiskritisasi
 Ts = 0.001;
 num_p = [1.151 0.1774];
 den_p = [1 0.739 0.921 0];
 
-% 1. PERBAIKAN BODE: Gunakan format ZPK (Zero-Pole-Gain) 
+% 1. Gunakan format ZPK (Zero-Pole-Gain) 
 % Ini mencegah error numerik "lonjakan aneh" di frekuensi rendah
 Gp_s = zpk(tf(num_p, den_p)); 
 Kp = 17; 
@@ -20,9 +19,8 @@ C_z  = c2d(C_s,  Ts, 'tustin');
 % 3. Open-loop digital
 OpenLoop_z = C_z * Gp_z;
 
-% ==========================================
 % PLOTTING YANG SUDAH DISESUAIKAN (ZOOMING)
-% ==========================================
+
 
 % --- 1. BODE PLOT ---
 figure('Name', 'Bode Plot Digital yang Benar', 'NumberTitle', 'off');

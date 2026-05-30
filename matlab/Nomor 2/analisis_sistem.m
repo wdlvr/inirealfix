@@ -1,5 +1,10 @@
+% analisis_sistem.m
+% Analisis open-loop dan closed-loop untuk Nomor 2 (kendali pitch pesawat).
+% Penggunaan: Melakukan analisi root locus,
+% Bode Plot, Nyquist, serta respons closed-loop (step, impulse, ramp, parabolik).
 clear; clc; close all;
 
+% Load model dari Nomor 1
 here = fileparts(mfilename('fullpath'));
 if isempty(here)
     p = which('analisis_sistem.m');
@@ -28,17 +33,12 @@ else
     error('aircraft_pitch_tf.mat does not contain expected variables');
 end
 
+% Set nama input/output
 G1.InputName = 'delta_e';
 G1.OutputName = 'theta';
-
-out_dir = fullfile(here, 'figures');
-if ~exist(out_dir, 'dir')
-    mkdir(out_dir);
-end
-
 C = 1;
 L = C*G1;
-
+% Analisis open-loop untuk sistem tanpa kompensasi (Nomor 2).
 disp('Open-loop transfer function L(s) = C(s)G1(s)');
 disp('Uncompensated system: C(s) = 1');
 L
@@ -52,15 +52,14 @@ zero(L)
 disp('Open-loop stable:');
 isstable(L)
 
-fig = figure('Name', 'Root Locus - Uncompensated');
+% Root locus, Bode, Nyquist untuk sistem uncompensated
+figure('Name', 'Root Locus - Uncompensated');
 rlocus(L); grid on;
 title('Root Locus Sistem Uncompensated');
-saveas(fig, fullfile(out_dir, 'root_locus_uncomp.png'));
 
-fig = figure('Name', 'Bode Plot - Uncompensated');
+figure('Name', 'Bode Plot - Uncompensated');
 margin(L); grid on;
 title('Bode Plot Sistem Uncompensated');
-saveas(fig, fullfile(out_dir, 'bode_uncomp.png'));
 
 [Gm, Pm, Wcg, Wcp] = margin(L);
 
@@ -75,11 +74,10 @@ fprintf('Gain margin     : %.4g atau %.4g dB\n', Gm, Gm_db);
 fprintf('Phase margin    : %.4g deg\n', Pm);
 fprintf('Gain crossover  : %.4g rad/s\n', Wcg);
 fprintf('Phase crossover : %.4g rad/s\n', Wcp);
-fig = figure('Name', 'Nyquist Plot - Uncompensated');
+figure('Name', 'Nyquist Plot - Uncompensated');
 nyquist(L);
 grid on;
 title('Nyquist Plot Sistem Uncompensated');
-saveas(fig, fullfile(out_dir, 'nyquist_uncomp.png'));
 
 T = feedback(L, 1);
 T = minreal(T);
@@ -93,26 +91,14 @@ pole(T)
 
 disp('Zeros Sistem Closed-loop:');
 zero(T)
-
-stable_cl = isstable(T);
-
 t = 0:0.001:50;
 
-fig = figure('Name', 'Step Response - Uncompensated');
+% Respons unit step
+figure('Name', 'Respons Step - Uncompensated');
 step(T, t); grid on;
-title('Closed-loop Respons Step Uncompensated');
+title('Respons Closed-loop Step Uncompensated');
 xlabel('Time (s)');
 ylabel('Pitch Angle \\\theta (rad)');
-saveas(fig, fullfile(out_dir, 'step_uncomp.png'));
-
-% Impulse response
-%[y_imp, t_imp] = impulse(T, t);
-%fig = figure('Name', 'Impulse Response - Uncompensated');
-%plot(t_imp, y_imp); grid on;
-%title('Closed-loop Respons Impuls Sistem');
-%xlabel('Time (s)');
-%ylabel('Pitch Angle \\\theta (rad)');
-%saveas(fig, fullfile(out_dir, 'impulse_uncomp.png'));
 
 if stable_cl
     info = stepinfo(T);
@@ -141,3 +127,37 @@ save(fullfile(out_dir, 'analysis_metrics.mat'), ...
 fprintf('Saved model to %s and metrics to %s\n', ...
     fullfile(here, 'aircraft_pitch_uncompensated_tf.mat'), ...
     fullfile(out_dir, 'analysis_metrics.mat'));
+
+% Respons unit impuls
+figure;
+impulse(T, t);
+grid on;
+title('Respons Impuls Sistem Uncompensated');
+xlabel('Time (s)');
+ylabel('Pitch Angle \theta (rad)');
+
+% Respons unit ramp
+r_ramp = t;
+[y_ramp, t_ramp] = lsim(T, r_ramp, t);
+
+figure;
+plot(t_ramp, r_ramp, '--'); hold on;
+plot(t_ramp, y_ramp);
+grid on;
+title('Respons Ramp Sistem Uncompensated');
+xlabel('Time (s)');
+ylabel('Pitch Angle \theta (rad)');
+legend('Input Ramp', 'Output');
+
+% Respons parabolik
+r_parabolic = 0.5*t.^2;
+[y_para, t_para] = lsim(T, r_parabolic, t);
+
+figure;
+plot(t_para, r_parabolic, '--'); hold on;
+plot(t_para, y_para);
+grid on;
+title('Respons Parabolik Sistem Uncompensated');
+xlabel('Time (s)');
+ylabel('Pitch Angle \theta (rad)');
+legend('Input Parabolic', 'Output');
