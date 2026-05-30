@@ -1,6 +1,6 @@
 % analisis_sistem.m
 % Analisis open-loop dan closed-loop untuk Nomor 2 (kendali pitch pesawat).
-% Penggunaan: Melakukan analisi root locus,
+% Deskripsi: Melakukan analisi root locus,
 % Bode Plot, Nyquist, serta respons closed-loop (step, impulse, ramp, parabolik).
 clear; clc; close all;
 
@@ -94,11 +94,10 @@ figure('Name', 'Respons Step - Uncompensated');
 step(T, t); grid on;
 title('Respons Closed-loop Step Uncompensated');
 xlabel('Time (s)');
-ylabel('Pitch Angle \\theta (rad)');
+ylabel('Pitch Angle \\\theta (rad)');
 
-    info = stepinfo(T);
-    ess = abs(1 - dcgain(T));
-
+info = stepinfo(T);
+ess = abs(1 - dcgain(T));
 fprintf('\nHasil Closed-loop Uncompensated:\n');
 fprintf('Steady-state error : %.4g\n', ess);
 fprintf('Rise time          : %.4g s\n', info.RiseTime);
