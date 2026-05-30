@@ -1,5 +1,5 @@
 % digital_rootL_Nyquist_BodeP.m
-% Penggunaan: Memplot Bode dan Nyquist dari sistem digital yang didiskritisasi
+% Deskripsi: Memplot Bode dan Nyquist dari sistem digital yang didiskritisasi
 Ts = 0.001;
 num_p = [1.151 0.1774];
 den_p = [1 0.739 0.921 0];

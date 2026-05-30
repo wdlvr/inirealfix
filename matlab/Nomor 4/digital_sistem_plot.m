@@ -1,6 +1,6 @@
 % digital_sistem_plot.m
 % Perbandingan sistem analog dan digital (diskritisasi controller) untuk contoh
-% Penggunaan: jalankan di matlab/Nomor 4. Skrip mendefinisikan plant, controller
+% Deskripsi: jalankan di matlab/Nomor 4. Skrip mendefinisikan plant, controller
 % PID, melakukan diskritisasi, dan membandingkan respons step analog vs digital.
 Ts = 0.001; 
 num_p = [1.151 0.1774]; %iniplant pembilang

@@ -17,20 +17,16 @@ end
 
 model_dir = fullfile(here, '..', 'Nomor 1');
 mat_path = fullfile(model_dir, 'aircraft_pitch_tf.mat');
-if exist(mat_path, 'file')
-    loaded = load(mat_path);
-else
-    loaded = load('aircraft_pitch_tf.mat');
-end
+loaded = load(mat_path);
+
 
 if isfield(loaded, 'G1')
     G1 = loaded.G1;
 elseif isfield(loaded, 'sys_tf')
     G1 = loaded.sys_tf;
-elseif isfield(loaded, 'num') && isfield(loaded, 'den')
-    G1 = tf(loaded.num, loaded.den);
 else
-    error('aircraft_pitch_tf.mat does not contain expected variables');
+    isfield(loaded, 'num') && isfield(loaded, 'den')
+    G1 = tf(loaded.num, loaded.den);
 end
 
 % Set nama input/output
@@ -98,35 +94,18 @@ figure('Name', 'Respons Step - Uncompensated');
 step(T, t); grid on;
 title('Respons Closed-loop Step Uncompensated');
 xlabel('Time (s)');
-ylabel('Pitch Angle \\\theta (rad)');
+ylabel('Pitch Angle \\theta (rad)');
 
-if stable_cl
     info = stepinfo(T);
     ess = abs(1 - dcgain(T));
 
-    fprintf('\nHasil Closed-loop Uncompensated:\n');
-    fprintf('Steady-state error : %.4g\n', ess);
-    fprintf('Rise time          : %.4g s\n', info.RiseTime);
-    fprintf('Settling time      : %.4g s\n', info.SettlingTime);
-    fprintf('Overshoot          : %.4g %%\n', info.Overshoot);
-    fprintf('Peak               : %.4g\n', info.Peak);
-    fprintf('Peak time          : %.4g s\n', info.PeakTime);
-else
-    fprintf('\nClosed-loop uncompensated system unstable. Step response metrics are not valid.\n');
-    info = struct('RiseTime', NaN, 'SettlingTime', NaN, 'Overshoot', NaN, ...
-        'Peak', NaN, 'PeakTime', NaN);
-    ess = NaN;
-end
-
-save(fullfile(here, 'aircraft_pitch_uncompensated_tf.mat'), ...
-     'G1', 'C', 'L', 'T');
-
-save(fullfile(out_dir, 'analysis_metrics.mat'), ...
-    'Gm', 'Pm', 'Wcg', 'Wcp', 'Gm_db', 'info', 'ess', 'stable_cl');
-
-fprintf('Saved model to %s and metrics to %s\n', ...
-    fullfile(here, 'aircraft_pitch_uncompensated_tf.mat'), ...
-    fullfile(out_dir, 'analysis_metrics.mat'));
+fprintf('\nHasil Closed-loop Uncompensated:\n');
+fprintf('Steady-state error : %.4g\n', ess);
+fprintf('Rise time          : %.4g s\n', info.RiseTime);
+fprintf('Settling time      : %.4g s\n', info.SettlingTime);
+fprintf('Overshoot          : %.4g %%\n', info.Overshoot);
+fprintf('Peak               : %.4g\n', info.Peak);
+fprintf('Peak time          : %.4g s\n', info.PeakTime);
 
 % Respons unit impuls
 figure;
