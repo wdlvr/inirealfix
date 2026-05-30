@@ -66,7 +66,6 @@ if isfinite(Gm)
 else
     Gm_db = Inf;
 end
-
 fprintf('\nStability Margins from Open-loop L(s):\n');
 fprintf('Gain margin     : %.4g atau %.4g dB\n', Gm, Gm_db);
 fprintf('Phase margin    : %.4g deg\n', Pm);
@@ -78,8 +77,8 @@ grid on;
 title('Nyquist Plot Sistem Uncompensated');
 
 T = feedback(L, 1);
-T = minreal(T);
 
+% Analisis closed-loop untuk sistem tanpa kompensasi
 disp('Closed-loop uncompensated transfer function');
 disp('T(s) = G1(s) / (1 + G1(s))');
 T
