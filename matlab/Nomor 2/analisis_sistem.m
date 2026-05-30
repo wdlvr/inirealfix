@@ -21,7 +21,6 @@ model_dir = fullfile(here, '..', 'Nomor 1');
 mat_path = fullfile(model_dir, 'aircraft_pitch_tf.mat');
 loaded = load(mat_path);
 
-
 if isfield(loaded, 'G1')
     G1 = loaded.G1;
 elseif isfield(loaded, 'sys_tf')
