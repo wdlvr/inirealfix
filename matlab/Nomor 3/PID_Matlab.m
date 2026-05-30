@@ -1,35 +1,44 @@
+% Nama / NIM : 
+% Rafi Ihsan Alfathin     / 13223018
+% Maghryza Milchan Fayumi / 13223036
+% William Anthony         / 13223048
+%% Deskripsi: PID generator menggunakan PID Tuner bawaan MATLAB,
+%% nilai Kp, Ki, dan Kd didapat dari tuning dari MATLAB, ini hanya sebagai komparasi saja
+%% bukan PID yang akan digunakan
 clear; clc; close all;
 
-%% Load Fungsi Transfer
+% Load plant terkompensasi yang ingin dianalisis
 here = fileparts(mfilename('fullpath'));
 model_dir = fullfile(here, '..', 'Nomor 1');
 mat_path = fullfile(model_dir, 'aircraft_pitch_tf.mat');
 load(mat_path, 'G1');
-
 s = tf('s');
 
-%% Plant
-G = G1;
-
+% Tampilkan fungsi transfer
 disp('Plant transfer function:');
-G
+G1
 
+% Nilai Kp, Ki, dan Kd yang didapat dari tuning pada PID Tuner
 Kp = 24.3161;
 Ki = 15.4352;
 Kd = 9.5767;
 
-%% PID Controller
-C_PID = Kp + Ki/s + Kd*s;
+% Fungsi transfer kontroler PID
+C = Kp + Ki/s + Kd*s;
 
+% Tampilkan fungsi transfer C(s)
 disp('PID Controller hasil PID Tuner:');
-C_PID
+C
 
+% Tampilkan nilai Kp, Ki, dan Kd
 fprintf('Kp = %.6f\n', Kp);
 fprintf('Ki = %.6f\n', Ki);
 fprintf('Kd = %.6f\n', Kd);
-G_comp = G * C_PID;
+
+% Buat fungsi transfer plant terkompensasi
+G_comp = G1 * C;
 G_comp
 
 
-%% Save hasil
+% Simpan file .mat nya
 save('aircraft_pitch_tf_PID_comp_Matlab.mat', 'G_comp');

@@ -1,34 +1,37 @@
+% Nama / NIM : 
+% Rafi Ihsan Alfathin     / 13223018
+% Maghryza Milchan Fayumi / 13223036
+% William Anthony         / 13223048
+%% Deskripsi: Lead generator menggunakan matematika dari buku Nise,
+%% dari Ts dan %OS akan otomatis digenerasikan kompensasi Lead yang dibutuhkan
 clear; clc; close all;
 
-%% Load Fungsi Transfer
+% Load plant terkompensasi yang ingin dianalisis
 here = fileparts(mfilename('fullpath'));
 model_dir = fullfile(here, '..', 'Nomor 1');
 mat_path = fullfile(model_dir, 'aircraft_pitch_tf.mat');
 load(mat_path, 'G1');
-
 s = tf('s');
 
-%% Design Parameters
+% Parameter Desain (Nilai sebenarnya akan berbeda karena ini asumsi
+% pendekatan orde 2, oleh karena itu desain parameternya berbeda dengan
+% spesifikasi asli, ini adalah hasil akhir dari iterasi beberapa kali)
 percent_overshoot = 0.04;     % percent overshoot
 settling_time = 0.8;          % settling time dalam detik
 zero_lead     = 3;            % nilai a pada (s+a)/(s+b), pilih dikiri pole dominan
 
-%% Calculate damping ratio zeta
+% Kalkulasi nilai zeta
 OS = percent_overshoot / 100;
-
 zeta = -log(OS) / sqrt(pi^2 + (log(OS))^2);
 
 
-%% Calculate desired pole location
+% Kalkulasi pole yang diinginkan (dominan)
 sigma_d = 4 / settling_time;
-
 wn = sigma_d / zeta;
-
 wd = wn * sqrt(1 - zeta^2);
-
 pole_dominan = -sigma_d + 1i*wd;
 
-%% Display results
+% Tampilkan parameter yang didapat
 fprintf('Parameter Desain:\n');
 fprintf('Percent Overshoot = %.4f %%\n', percent_overshoot);
 fprintf('Settling Time     = %.4f s\n\n', settling_time);
@@ -40,8 +43,7 @@ fprintf('wn                = %.6f rad/s\n', wn);
 fprintf('wd                = %.6f rad/s\n', wd);
 fprintf('dominant pole     = %.6f %+.6fj\n', real(pole_dominan), imag(pole_dominan));
 
-%% Calculate angle deficiency / compensation angle
-
+%% Kalkulasi sudut kompensasi yang dibutuhkan
 % Substitusi pole dominan ke open-loop plant G1(s)
 G_pole_dominan = evalfr(G1*(s+zero_lead), pole_dominan);
 
@@ -56,20 +58,22 @@ elseif sudut_G_deg < 0
     sudut_kompensasi = 180 + sudut_G_deg;
 end
 
-%% Display angle results
+% Tampilkan sudut kompensasi yang dibutuhkan
 fprintf('\nAngle Calculation:\n');
 fprintf('Nilai fungsi transfer pada pole dominan = %.6f %+.6fj\n', real(G_pole_dominan), imag(G_pole_dominan));
 fprintf('Sudut kompensasi dibutuhkan dari Pc= %.6f deg\n', -sudut_kompensasi);
 
+% Nilai pole kompensasi Lead
 Pc = wd/tan(deg2rad(sudut_kompensasi)) + sigma_d;
 
-
+%% Kompensasi Lead
 G_comp = G1*(s+zero_lead)/(s+Pc);
 G_comp_pole_dominan = evalfr(G_comp, pole_dominan);
 K_comp = -1/G_comp_pole_dominan;
 K_comp_real = real(K_comp);
 G_comp = K_comp_real*G_comp;
 
+% Tampilkan hasil kompensasi yang didapat
 fprintf('\nNilai kompensasi Lead:\n');
 fprintf('Zero dan Pole kompensasi pada s = %.6f dan s = %.6f\n', -zero_lead, -Pc);
 fprintf('K_comp = %.6f\n', K_comp);
@@ -77,4 +81,5 @@ fprintf('Fungsi transfer Lead: %.6f(s + %.6f)/(s + %.6f)\n', K_comp, zero_lead, 
 fprintf('Fungsi transfer setelah kompensasi: \n');
 G_comp
 
+% Simpan file .mat nya
 save('aircraft_pitch_tf_Lead_comp.mat', 'G_comp');

@@ -1,69 +1,75 @@
+% Nama / NIM : 
+% Rafi Ihsan Alfathin     / 13223018
+% Maghryza Milchan Fayumi / 13223036
+% William Anthony         / 13223048
+%% Deskripsi: Kode untuk analisis sistem terkompensasi, termasuk
+%% pole, zero, respons step, performa respons step, respons impuls, ramp, dan parabolik
+
 clear; clc; close all;
-
+% Load plant terkompensasi yang ingin dianalisis
 load('aircraft_pitch_tf_PID_comp.mat', 'G_comp');
-L = G_comp;
 
-disp('Fungsi Transfer Openloop L(s) = G_comp(s)');
-L
+% Display fungsi transfernya
+disp('Fungsi Transfer Openloop G_comp(s)');
+G_comp
 
-disp('Open-loop poles:');
-pole(L)
+% Menampilkan pole dan zero dari open-loop
+disp('Pole open-loop:');
+pole(G_comp)
+disp('Zero open-loop:');
+zero(G_comp)
 
-disp('Open-loop zeros:');
-zero(L)
-
-disp('Open-loop stable:');
-
+% Root locus dari sistem terkompensasi
 fig = figure('Name', 'Root Locus dari Sistem Terkompensasi');
-rlocus(L); grid on;
+rlocus(G_comp); grid on;
 title('Root Locus dari Sistem Terkompensasi');
 
+% Bode plot dari sistem terkompensasi
 fig = figure('Name', 'Bode Plot dari Sistem Terkompensasi');
-margin(L); grid on;
+margin(G_comp); grid on;
 title('Bode Plot dari Sistem Terkompensasi');
 
-[Gm, Pm, Wcg, Wcp] = margin(L);
-
-if isfinite(Gm)
-    Gm_db = 20*log(Gm);
-else
-    Gm_db = Inf;
-end
-
-fprintf('\nMargin Stabilitas dari openloop L(s):\n');
-fprintf('Gain margin     : %.4g atau %.4g dB\n', Gm, Gm_db);
-fprintf('Phase margin    : %.4g deg\n', Pm);
-fprintf('Gain crossover  : %.4g rad/s\n', Wcg);
-fprintf('Phase crossover : %.4g rad/s\n', Wcp);
+% Nyquist plot dari sistem terkompensasi
 fig = figure('Name', 'Plot Nyquist dari Sistem Terkompensasi');
-nyquist(L);
+nyquist(G_comp);
 grid on;
 title('Plot Nyquist dari Sistem Terkompensasi');
 
-T = feedback(L, 1);
-T = minreal(T);
+% Mencari gain margin, phase margin, dan crossovernya
+[Gm, Pm, Wcg, Wcp] = margin(G_comp);
+Gm_dB = -20*log10(Gm);
+fprintf('\nMargin Stabilitas dari openloop L(s):\n');
+fprintf('Gain margin     : %.4g dB\n', Gm_dB);
+fprintf('Phase margin    : %.4g deg\n', Pm);
+fprintf('Gain crossover  : %.4g rad/s\n', Wcg);
+fprintf('Phase crossover : %.4g rad/s\n', Wcp);
 
+
+% Buat sistem unity feedback
+T = feedback(G_comp, 1);
 disp('Fungsi Closed-Loop Sistem Terkompensasi');
 disp('T(s) = G_comp(s) / (1 + G_comp(s))');
 T
 
+% Menampilkan pole dan zero dari closed-loop
 disp('Closed-loop poles:');
 pole(T)
-
 disp('Closed-loop zeros:');
 zero(T)
 
+% waktu sampai 50 detik agar bisa dibandingkan dengan uncompensated
 t = 0:0.001:50;
 
+% Respons step T(s)
 fig = figure('Name', 'Respons Step dari Sistem Terkompensasi Closed-Loop');
 step(T, t); grid on;
 title('Respons Step dari Sistem Terkompensasi Closed-Loop');
 xlabel('Time (s)');
 ylabel('Pitch Angle \\\theta (rad)');
 
+% Respons step T(s)
 info = stepinfo(T);
 ess = abs(1 - dcgain(T));
-
 fprintf('\nPerforma Respons Step Sistem Terkompensasi Closed-Loop:\n');
 fprintf('Steady-state error : %.4g\n', ess);
 fprintf('Rise time          : %.4g s\n', info.RiseTime);
@@ -72,7 +78,7 @@ fprintf('Overshoot          : %.4g %%\n', info.Overshoot);
 fprintf('Peak               : %.4g\n', info.Peak);
 fprintf('Peak time          : %.4g s\n', info.PeakTime);
 
-%% Respons unit impulse
+% Respons unit impulse T(s)
 figure;
 impulse(T, t);
 grid on;
@@ -80,10 +86,9 @@ title('Respons Impuls dari Sistem Terkompensasi Closed-Loop');
 xlabel('Time (s)');
 ylabel('Pitch Angle \theta (rad)');
 
-%% Respons unit ramp
+% Respons unit ramp T(s)
 r_ramp = t;
 [y_ramp, t_ramp] = lsim(T, r_ramp, t);
-
 figure;
 plot(t_ramp, r_ramp, '--'); hold on;
 plot(t_ramp, y_ramp);
@@ -93,11 +98,10 @@ xlabel('Time (s)');
 ylabel('Pitch Angle \theta (rad)');
 legend('Input Ramp', 'Output');
 
-t = 0:0.001:50;
-%% Respons unit parabolik
+
+% Respons parabolik
 r_parabolic = 0.5*t.^2;
 [y_para, t_para] = lsim(T, r_parabolic, t);
-
 figure;
 plot(t_para, r_parabolic, '--'); hold on;
 plot(t_para, y_para);
