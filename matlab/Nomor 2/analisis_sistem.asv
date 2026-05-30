@@ -25,22 +25,21 @@ disp('Open-loop zeros:');
 zero(G1)
 
 % Root locus dari sistem
-figure('Name', 'Root Locus Sistem Uncompensated');
+figure('Name', 'Root Locus - Uncompensated');
 rlocus(G1); grid on;
 title('Root Locus Sistem Uncompensated');
 
 % Bode plot dari sistem
-figure('Name', 'Bode Plot Sistem Uncompensated');
+figure('Name', 'Bode Plot - Uncompensated');
 margin(G1); grid on;
 title('Bode Plot Sistem Uncompensated');
 
 % Nyquist plot dari sistem 
-figure('Name', 'Nyquist Plot Sistem Uncompensated');
 nyquist(G1);
 grid on;
 title('Nyquist Plot Sistem Uncompensated');
 
-% Mencari gain margin, phase margin, dan crossovernya
+
 [Gm, Pm, Wcg, Wcp] = margin(G1);
 Gm_db = 20*log10(Gm);
 fprintf('\nStability Margins from Open-loop L(s):\n');
@@ -48,30 +47,30 @@ fprintf('Gain margin     : %.4g dB\n', Gm_db);
 fprintf('Phase margin    : %.4g deg\n', Pm);
 fprintf('Gain crossover  : %.4g rad/s\n', Wcg);
 fprintf('Phase crossover : %.4g rad/s\n', Wcp);
+figure('Name', 'Nyquist Plot - Uncompensated');
 
-% Buat sistem unity feedback
+
 T = feedback(G1, 1);
+
+% Analisis closed-loop untuk sistem tanpa kompensasi
 disp('Closed-loop uncompensated transfer function');
 disp('T(s) = G1(s) / (1 + G1(s))');
 T
 
-% Menampilkan pole dan zero dari closed-loop
 disp('Poles Sistem Closed-loop:');
 pole(T)
+
 disp('Zeros Sistem Closed-loop:');
 zero(T)
-
-% waktu sampai 50 detik agar Ts terlihat
 t = 0:0.001:50;
 
-% Respons step T(s)
+% Respons unit step
 figure('Name', 'Respons Step - Uncompensated');
 step(T, t); grid on;
 title('Respons Closed-loop Step Uncompensated');
 xlabel('Time (s)');
 ylabel('Pitch Angle \\\theta (rad)');
 
-% Performa Respons step T(s)
 info = stepinfo(T);
 ess = abs(1 - dcgain(T));
 fprintf('\nHasil Closed-loop Uncompensated:\n');
@@ -82,7 +81,7 @@ fprintf('Overshoot          : %.4g %%\n', info.Overshoot);
 fprintf('Peak               : %.4g\n', info.Peak);
 fprintf('Peak time          : %.4g s\n', info.PeakTime);
 
-% Respons unit impuls T(s)
+% Respons unit impuls
 figure;
 impulse(T, t);
 grid on;
@@ -90,9 +89,10 @@ title('Respons Impuls Sistem Uncompensated');
 xlabel('Time (s)');
 ylabel('Pitch Angle \theta (rad)');
 
-% Respons unit ramp T(s)
+% Respons unit ramp
 r_ramp = t;
 [y_ramp, t_ramp] = lsim(T, r_ramp, t);
+
 figure;
 plot(t_ramp, r_ramp, '--'); hold on;
 plot(t_ramp, y_ramp);
@@ -102,9 +102,10 @@ xlabel('Time (s)');
 ylabel('Pitch Angle \theta (rad)');
 legend('Input Ramp', 'Output');
 
-% Respons parabolik T(s)
+% Respons parabolik
 r_parabolic = 0.5*t.^2;
 [y_para, t_para] = lsim(T, r_parabolic, t);
+
 figure;
 plot(t_para, r_parabolic, '--'); hold on;
 plot(t_para, y_para);

@@ -67,7 +67,7 @@ title('Respons Step dari Sistem Terkompensasi Closed-Loop');
 xlabel('Time (s)');
 ylabel('Pitch Angle \\\theta (rad)');
 
-% Respons step T(s)
+% Performa Respons step T(s)
 info = stepinfo(T);
 ess = abs(1 - dcgain(T));
 fprintf('\nPerforma Respons Step Sistem Terkompensasi Closed-Loop:\n');
@@ -78,7 +78,7 @@ fprintf('Overshoot          : %.4g %%\n', info.Overshoot);
 fprintf('Peak               : %.4g\n', info.Peak);
 fprintf('Peak time          : %.4g s\n', info.PeakTime);
 
-% Respons unit impulse T(s)
+% Respons unit impuls T(s)
 figure;
 impulse(T, t);
 grid on;
@@ -99,7 +99,7 @@ ylabel('Pitch Angle \theta (rad)');
 legend('Input Ramp', 'Output');
 
 
-% Respons parabolik
+% Respons parabolik T(s)
 r_parabolic = 0.5*t.^2;
 [y_para, t_para] = lsim(T, r_parabolic, t);
 figure;
