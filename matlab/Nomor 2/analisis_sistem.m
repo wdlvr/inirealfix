@@ -2,7 +2,7 @@
 % Rafi Ihsan Alfathin     / 13223018
 % Maghryza Milchan Fayumi / 13223036
 % William Anthony         / 13223048
-% Deskripsi: Melakukan analisi root locus,
+% Deskripsi: Melakukan analisis root locus,
 % Bode Plot, Nyquist, serta respons closed-loop (step, impulse, ramp, parabolik).
 clear; clc; close all;
 
